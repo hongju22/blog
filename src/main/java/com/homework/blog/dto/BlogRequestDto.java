@@ -1,4 +1,4 @@
-package com.homework.blog.blog;
+package com.homework.blog.dto;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -10,9 +10,8 @@ import lombok.Setter;
 @RequiredArgsConstructor
 
 public class BlogRequestDto {
-    private final String username;
+    private final String name;
     private final String comment;
-    private final String password;
     private final String title;
-
+    private final String memo;
 }

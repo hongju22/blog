@@ -1,4 +1,4 @@
-package com.homework.blog.blog;
+package com.homework.blog.model;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;

@@ -1,9 +1,13 @@
 package com.homework.blog.controller;
 
 
-import com.homework.blog.blog.Blog;
-import com.homework.blog.blog.BlogRequestDto;
+import com.homework.blog.dto.BlogRequestDto;
+import com.homework.blog.model.Blog;
+import com.homework.blog.model.UserRoleEnum;
+import com.homework.blog.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,44 +17,42 @@ import java.util.List;
 @RestController
 
 public class BlogController {
-    private final com.homework.blog.blog.BlogRepository BlogRepository;
-    private final com.homework.blog.service.BlogService BlogService;
+    private final com.homework.blog.service.BlogService blogService;
 
-//    게시글 작성
+
+    // 신규 상품 등록
     @PostMapping("/api/blogs")
-    public Blog createBlog(@RequestBody BlogRequestDto requestDto) {
-        Blog Blog = new Blog(requestDto);
-        return BlogRepository.save(Blog);
+    public Blog createblog(@RequestBody BlogRequestDto requestDto,
+                              @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        // 로그인 되어 있는 회원 테이블의 ID
+        Long userId = userDetails.getUser().getId();
+
+        Blog blog = blogService.createBlog(requestDto, userId);
+
+        // 응답 보내기
+        return blog;
     }
-//    게시글 목록
+
+    // 로그인한 회원이 등록한 관심 상품 조회
     @GetMapping("/api/blogs")
-    public List<Blog> readBlog() {
-        return BlogRepository.findAllByOrderByModifiedAtDesc();
+    public List<Blog> getProducts(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        // 로그인 되어 있는 회원 테이블의 ID
+        Long userId = userDetails.getUser().getId();
+
+        return blogService.getBlogs(userId);
     }
 
-//    자료 조회
-    @GetMapping("/api/blogs/{id}")
-    public List<Blog> showBlog(){
-        return BlogRepository.findAllByOrderByModifiedAtDesc();
-    }
-//  게시글 수정
     @PutMapping("/api/blogs/{id}")
-    public Long update(@PathVariable Long id, @RequestBody BlogRequestDto requestDto){
+    public Long updateProduct(@PathVariable Long id, @RequestBody BlogRequestDto requestDto) {
+        Blog blog = blogService.updateBlog(id, requestDto);
 
-        if(BlogService.checkPassword(id, requestDto.getPassword())){
-            BlogService.update(id, requestDto);
-        }
-        return id;
+        return blog.getId();
     }
 
-//내용 삭제
-    @DeleteMapping("/api/blogs/{id}")
-    public Long deleteblog(@PathVariable Long id, @RequestBody BlogRequestDto requestDto){
-
-        if(BlogService.checkPassword(id, requestDto.getPassword())){
-            BlogRepository.deleteById(id);
-        }
-        return id;
+    // (관리자용) 전체 상품 조회
+    @Secured(UserRoleEnum.Authority.ADMIN)
+    @GetMapping("/api/admin/blogs")
+    public List<Blog> getAllProducts() {
+        return blogService.getAllBlogs();
     }
-
 }
